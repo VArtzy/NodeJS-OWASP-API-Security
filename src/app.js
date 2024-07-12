@@ -14,6 +14,10 @@ const revenueData = {
     'toyota': { revenue: 30000, owner: 'farrel' }
 }
 
+const bookings = {
+    1: { id: 1, approved: false, comment: '', price: 100 },
+}
+
 const users = {}
 
 const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
@@ -107,6 +111,36 @@ app.post('/reset-password', verifyToken, async (req, res) => {
     users[username].password = hashedPassword
 
     res.json({ message: 'Password updated successfully' })
+})
+
+app.post('/api/host/approve_booking/:id', verifyToken, (req, res) => {
+    const bookingId = Number(req.params.id)
+    const booking = bookings[bookingId]
+
+    if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' })
+    }
+
+    // Only allow for specific property
+    const allowed = ['approved', 'comment']
+    for (let prop of allowed) {
+        booking[prop] = req.body[prop]
+    }
+    
+    /* Or use this code to update specific properties
+    const { approved, comment } = req.body
+    booking.approved = approved
+    booking.comment = comment 
+    */
+
+    // Return only non-sensitive data and create filtered response object
+    const bookingRes = {
+        id: booking.id,
+        approved: booking.approved,
+        comment: booking.comment
+    }
+
+    res.json(bookingRes)
 })
 
 app.get('/shops/:shopName/revenue', verifyToken, (req, res) => {

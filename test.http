@@ -51,3 +51,15 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIs
 GET http://localhost:3000/shops/toyota/revenue
 Accept: application/json
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc2ODg0NCwiZXhwIjoxNzIwNzcyNDQ0fQ.XaefN71b7kVqkIiRBB2A7-MkR2NsB4ZgvoZ-ZzO3Y4g
+
+### Host approved request
+POST http://localhost:3000/api/host/approve_booking/1
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc3ODc3NiwiZXhwIjoxNzIwNzgyMzc2fQ.oe3mgyu9LAUHLIgr2tr-4dFqTVy0wA5Bf1fCdomZvWg
+
+{
+    "approved": true,
+    "comment": "Approved",
+    "price": 10000000
+}
