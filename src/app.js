@@ -1,6 +1,9 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import bodyParser from 'body-parser'
+import bcrypt from 'bcrypt'
+import rateLimit from 'express-rate-limit'
+import { randomUUID } from 'crypto'
 
 const app = express()
 app.use(bodyParser.json())
@@ -11,13 +14,24 @@ const revenueData = {
     'toyota': { revenue: 30000, owner: 'farrel' }
 }
 
-const users = {
-    'farrel': { id: 'farrel', password: 'secret' },
-    'john': { id: 'john', password: 'password' },
-    'tim': { id: 'tim', password: 'credential' }
-}
+const users = {}
 
-const SECRET_KEY = 'secret'
+const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
+const SALT_ROUNDS = 10
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login request per window
+    message: 'Too many login attempts, please try again later'
+})
+
+const passwordCheck = (password) => {
+    if (password.length < 8) return 'Password must be at least 8 characters'
+    if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase character'
+    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase character'
+    if (!/[!@$%^&*.?]/.test(password)) return 'Password must contain at least one special character'
+    return null
+}
 
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']
@@ -25,31 +39,84 @@ const verifyToken = (req, res, next) => {
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(401).json({ error: 'Invalid token' })
-        req.userId = decoded.id
+        req.username = decoded.username
         next()
     })
 }
 
-app.post('/login', (req, res) => {
+app.post('/register', async (req, res) => {
     const { username, password } = req.body
-    const user = users[username]
 
-    if (user && user.password === password) {
-        const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: '1h' })
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' })
+    }
+    if (users[username]) {
+        return res.status(400).json({ error: 'User already exists' })
+    }
+    const passwordError = passwordCheck(password)
+    if (passwordError) {
+        return res.status(400).json({ error: passwordError })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
+    users[username] = { password: hashedPassword }
+    res.status(201).json({ message: 'User created' })
+})
+
+app.post('/login', loginLimiter, async (req, res) => {
+    const { username, password } = req.body
+
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' })
+    }
+
+    const user = users[username]
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid username or password' })
+    }
+
+    const match = await bcrypt.compare(password, user.password)
+    if (match) {
+        const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' })
         res.json({ token })
     } else {
         res.status(401).json({ error: 'Invalid username or password' })
     }
 })
 
+app.post('/reset-password', verifyToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body
+    const { username } = req
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password are required' })
+    }
+
+    const user = users[username]
+    const match = await bcrypt.compare(currentPassword, user.password)
+    if (!match) {
+        return res.status(401).json({ error: 'Current password is incorrect' })
+    }
+
+    const passwordError = passwordCheck(newPassword)
+    if (passwordError) {
+        return res.status(400).json({ error: passwordError })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
+    users[username].password = hashedPassword
+
+    res.json({ message: 'Password updated successfully' })
+})
+
 app.get('/shops/:shopName/revenue', verifyToken, (req, res) => {
     const shopName = req.params.shopName
-    const userId = req.userId
+    const username = req.username
     const shopRevenue = revenueData[shopName]
 
     if (shopRevenue) {
         // Object-level authorization
-        if (shopRevenue.owner === userId) {
+        if (shopRevenue.owner === username) {
             res.json({ revenue: shopRevenue.revenue })
         } else {
             res.status(403).json({ error: 'You are not the owner' })

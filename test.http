@@ -1,3 +1,23 @@
+### Register unsecured password
+POST http://localhost:3000/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "farrel",
+    "password": "secret"
+}
+
+### Register
+POST http://localhost:3000/register
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "farrel",
+    "password": "Rahasia!"
+}
+
 ### Getting token
 POST http://localhost:3000/login
 Content-Type: application/json
@@ -5,7 +25,17 @@ Accept: application/json
 
 {
     "username": "farrel",
-    "password": "secret"
+    "password": "Rahasia!"
+}
+
+### Update password
+POST http://localhost:3000/reset-password
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc2ODg0NCwiZXhwIjoxNzIwNzcyNDQ0fQ.XaefN71b7kVqkIiRBB2A7-MkR2NsB4ZgvoZ-ZzO3Y4g
+{
+    "currentPassword": "Rahasia!",
+    "newPassword": "Mysecret!"
 }
 
 ### Unauthenticated request
@@ -15,9 +45,9 @@ Accept: application/json
 ### Unauthorized request
 GET http://localhost:3000/shops/nike/revenue
 Accept: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhcnJlbCIsImlhdCI6MTcyMDcxNjY5MSwiZXhwIjoxNzIwNzIwMjkxfQ.7oXPOyk91S9v06ptbOEIrCRz6EtFDCDoDh7F0E6aV7o
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc2ODI1MywiZXhwIjoxNzIwNzcxODUzfQ.ZcQZXypVbr5iLzMtleBVYwI1fLOCkkomABEXwegTgw4
 
 ### Authenticated request
 GET http://localhost:3000/shops/toyota/revenue
 Accept: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhcnJlbCIsImlhdCI6MTcyMDcxNjY5MSwiZXhwIjoxNzIwNzIwMjkxfQ.7oXPOyk91S9v06ptbOEIrCRz6EtFDCDoDh7F0E6aV7o
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc2ODg0NCwiZXhwIjoxNzIwNzcyNDQ0fQ.XaefN71b7kVqkIiRBB2A7-MkR2NsB4ZgvoZ-ZzO3Y4g
