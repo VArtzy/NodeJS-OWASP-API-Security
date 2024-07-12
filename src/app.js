@@ -4,6 +4,9 @@ import bodyParser from 'body-parser'
 import bcrypt from 'bcrypt'
 import rateLimit from 'express-rate-limit'
 import { randomUUID } from 'crypto'
+import { buildSchema } from 'graphql'
+import sharp from 'sharp'
+import { graphqlHTTP } from 'express-graphql'
 
 const app = express()
 app.use(bodyParser.json())
@@ -28,6 +31,56 @@ const loginLimiter = rateLimit({
     max: 5, // Limit each IP to 5 login request per window
     message: 'Too many login attempts, please try again later'
 })
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+})
+
+const monetizeLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // Limit each IP to 1 request per hour
+    message: 'You have exceeded the hourly limit for this action'
+})
+
+const graphqlBatchLimit = (limit) => (req, res, next) => {
+    if (Array.isArray(req.body)) {
+        if (req.body.length > limit) {
+            return res.status(400).json({ errors: [{ message: `Batch operations are limited to ${limit} per request.` }] })
+        }
+    }
+    next()
+}
+
+const processThumbnail = async (base64Image) => {
+    if (base64Image > 1000000) throw new Error('Image is too large')
+
+    const buff = Buffer.from(base64Image, 'base64')
+    await sharp(buff).resize(200, 200).toBuffer()
+    return 'http://example.com/thumbnail.jpg'
+}
+
+const schema = buildSchema(`
+    type Mutation {
+        uploadPic(name: String!, base64Pic: String!): PicUploadResult
+    }
+
+    type PicUploadResult {
+        url: String
+    }
+
+    type Query {
+        dummy: String
+    }
+`)
+
+const root = {
+    uploadPic: async ({ base64Pic }) => {
+        const url = await processThumbnail(base64Pic)
+        return { url }
+    },
+    dummy: () => 'dummy'
+}
 
 const passwordCheck = (password) => {
     if (password.length < 8) return 'Password must be at least 8 characters'
@@ -113,6 +166,31 @@ app.post('/reset-password', verifyToken, async (req, res) => {
     res.json({ message: 'Password updated successfully' })
 })
 
+// Graphql endpoint with rate limit and batch limit protection
+app.use('/graphql', apiLimiter, graphqlBatchLimit(10), graphqlHTTP({
+    schema,
+    rootValue: root,
+    graphiql: true
+}))
+
+// Bonus for API4: Unrestricted Resource Consumption. Other than graphql batch limiting
+let balance = 100
+// Limit request that had to call monetize API to not lose thousand of dollars
+app.post('/sms_forgot_password', monetizeLimiter, async (_, res) => {
+    const success = await fetch('http://localhost:3000/sms/send_reset_pass_code') // pretend 3rd party API that cost
+    if (success.ok) {
+        res.json(await success.json())
+        // do whatever it need to reset password like check code with user input then reset password
+    }
+})
+
+app.get('/sms/send_reset_pass_code', (_, res) => {
+    balance--
+    const code = Math.floor(Math.random() * 10000)
+    console.log(code, balance) // pretend to send sms
+    res.json({ code })
+})
+
 app.post('/api/host/approve_booking/:id', verifyToken, (req, res) => {
     const bookingId = Number(req.params.id)
     const booking = bookings[bookingId]
@@ -133,7 +211,7 @@ app.post('/api/host/approve_booking/:id', verifyToken, (req, res) => {
     booking.comment = comment 
     */
 
-    // Return only non-sensitive data and create filtered response object
+    // Create filtered response to avoid leaking sensitive data (e.g. price)
     const bookingRes = {
         id: booking.id,
         approved: booking.approved,

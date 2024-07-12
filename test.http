@@ -56,10 +56,13 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIs
 POST http://localhost:3000/api/host/approve_booking/1
 Content-Type: application/json
 Accept: application/json
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc3ODc3NiwiZXhwIjoxNzIwNzgyMzc2fQ.oe3mgyu9LAUHLIgr2tr-4dFqTVy0wA5Bf1fCdomZvWg
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsImlhdCI6MTcyMDc3OTIxOSwiZXhwIjoxNzIwNzgyODE5fQ.FeYXB13StVJ9hWfzfThMWHO1JQLfxtZUPQH3JYvkU9o
 
 {
     "approved": true,
     "comment": "Approved",
     "price": 10000000
 }
+
+### Testing sms code
+POST http://localhost:3000/sms_forgot_password

@@ -14,7 +14,10 @@
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
+    "express-graphql": "^0.12.0",
     "express-rate-limit": "^7.3.1",
-    "jsonwebtoken": "^9.0.2"
+    "graphql": "^15.9.0",
+    "jsonwebtoken": "^9.0.2",
+    "sharp": "^0.33.4"
   }
 }
