@@ -119,3 +119,11 @@ Accept: application/json
 {
     "picture_url": "https://placehold.co/600x400/EEE/31343C"
 }
+
+### Security misconfiguration
+GET http://localhost:3000/api/users/1
+Accept: application/json
+
+### Security misconfiguration fixed
+GET https://localhost:443/api/users/admin
+Accept: application/json

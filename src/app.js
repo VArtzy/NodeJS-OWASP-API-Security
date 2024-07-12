@@ -9,9 +9,18 @@ import sharp from 'sharp'
 import { graphqlHTTP } from 'express-graphql'
 import { URL } from 'url'
 import axios from 'axios'
+import helmet from 'helmet'
+import cors from 'cors'
+import { readFileSync } from 'fs'
+import https from 'https'
 
 const app = express()
 app.use(bodyParser.json())
+app.use(helmet()) // Adds various security headers
+app.use(cors({
+    origin: 'https://example.com',
+    methods: ['GET', 'POST']
+})) // cors is enabled only for example.com meaning that only requests from example.com are allowed
 
 const revenueData = {
     'nike': { revenue: 10000, owner: 'john' },
@@ -177,6 +186,17 @@ app.post('/login', loginLimiter, async (req, res) => {
     }
 })
 
+app.get('/api/users/:username', (req, res) => {
+    const { username } = req.params
+    const user = users[username]
+    if (user) {
+        const { password, ...userWithoutPassword } = user
+        res.json(userWithoutPassword)
+    } else {
+        res.status(404).json({ error: 'User not found' })
+    }
+})
+
 app.post('/api/profile/upload_picture', async (req, res) => {
     const { picture_url } = req.body
 
@@ -336,4 +356,16 @@ app.get('/shops/:shopName/revenue', verifyToken, (req, res) => {
     }
 })
 
-app.listen(3000, () => console.log('Server is running on http://localhost:3000'))
+app.use((err, req, res, next) => {
+    console.error(err)
+    res.status(500).json({ error: 'An unexpected error occured' })
+})
+
+const options = {
+    key: readFileSync('private-key.pem'),
+    cert: readFileSync('certificate.pem')
+}
+
+https.createServer(options, app).listen(443, () => {
+    console.log('Server is running on https://localhost:443')
+})
