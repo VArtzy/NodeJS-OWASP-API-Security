@@ -1,0 +1,23 @@
+### Getting token
+POST http://localhost:3000/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "farrel",
+    "password": "secret"
+}
+
+### Unauthenticated request
+GET http://localhost:3000/shops/toyota/revenue
+Accept: application/json
+
+### Unauthorized request
+GET http://localhost:3000/shops/nike/revenue
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhcnJlbCIsImlhdCI6MTcyMDcxNjY5MSwiZXhwIjoxNzIwNzIwMjkxfQ.7oXPOyk91S9v06ptbOEIrCRz6EtFDCDoDh7F0E6aV7o
+
+### Authenticated request
+GET http://localhost:3000/shops/toyota/revenue
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZhcnJlbCIsImlhdCI6MTcyMDcxNjY5MSwiZXhwIjoxNzIwNzIwMjkxfQ.7oXPOyk91S9v06ptbOEIrCRz6EtFDCDoDh7F0E6aV7o
