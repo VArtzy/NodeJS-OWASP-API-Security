@@ -7,18 +7,37 @@ import { randomUUID } from 'crypto'
 import { buildSchema } from 'graphql'
 import sharp from 'sharp'
 import { graphqlHTTP } from 'express-graphql'
+import { URL } from 'url'
+import axios from 'axios'
 
 const app = express()
 app.use(bodyParser.json())
 
+const revenueData = {
+    'nike': { revenue: 10000, owner: 'john' },
+    'apple': { revenue: 20000, owner: 'tim' },
+    'toyota': { revenue: 30000, owner: 'farrel' }
+}
 const users = {
     "admin": { password: 'test', role: 'admin' }
 }
+const bookings = {
+    1: { id: 1, approved: false, comment: '', price: 100 },
+}
 const invites = []
+let product = {
+    id: 1,
+    name: 'Limited Edition Gaming Console',
+    price: 399.99,
+    stock: 100
+}
+const purchaseHistory = new Map()
 
 const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
 const SALT_ROUNDS = 10
 const DEFAULT_ROLE = 'user'
+const ALLOWED_DOMAINS = ['example.com', 'placehold.co']
+const ALLOWED_SCHEMES = ['https']
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -58,6 +77,15 @@ const purchaseLimiter = rateLimit({
     max: 3, // Limit each IP to 3 purchase per day
     message: 'You have exceeded the daily purchase limit'
 })
+
+const isUrlAllowed = (url) => {
+    try {
+        const parsedUrl = new URL(url)
+        return ALLOWED_SCHEMES.includes(parsedUrl.protocol.slice(0, -1)) && ALLOWED_DOMAINS.includes(parsedUrl.hostname)
+    } catch (error) {
+        return false
+    }
+}
 
 const processThumbnail = async (base64Image) => {
     if (base64Image > 1000000) throw new Error('Image is too large')
@@ -146,6 +174,34 @@ app.post('/login', loginLimiter, async (req, res) => {
         res.json({ token })
     } else {
         res.status(401).json({ error: 'Invalid username or password' })
+    }
+})
+
+app.post('/api/profile/upload_picture', async (req, res) => {
+    const { picture_url } = req.body
+
+    if (!picture_url && typeof picture_url !== 'string') {
+        return res.status(400).json({ error: 'Invalid picture_url' })
+    }
+
+    if (!isUrlAllowed(picture_url)) {
+        return res.status(400).json({ error: 'URL not allowed' })
+    }
+
+    try {
+        const response = await axios.get(picture_url, {
+            responseType: 'arraybuffer',
+            maxRedirects: 0 // Prevent redirects
+        })
+
+        const contentType = response.headers['content-type']
+        if (!contentType.startsWith('image/')) {
+            return res.status(400).json({ error: 'Invalid content type' })
+        }
+
+        res.json({ message: 'Image uploaded successfully' })
+    } catch (error) {
+        res.status(400).json({ error: `Failed to fetch the image ${error}` })
     }
 })
 
