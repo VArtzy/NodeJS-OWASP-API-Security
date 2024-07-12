@@ -8,14 +8,11 @@ import { randomUUID } from 'crypto'
 const app = express()
 app.use(bodyParser.json())
 
-const users = {
-    "admin": { password: "test", role: "admin" }
-}
+const users = {}
 const invites = []
 
 const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
 const SALT_ROUNDS = 10
-const DEFAULT_ROLE = 'user'
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -38,16 +35,8 @@ const verifyToken = (req, res, next) => {
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(401).json({ error: 'Invalid token' })
         req.username = decoded.username
-        req.role = decoded.role
         next()
     })
-}
-
-const isAdmin = (req, res, next) => {
-    if (req.role !== 'admin') {
-        return res.status(403).json({ error: 'Access denied. Admin role required.' })
-    }
-    next()
 }
 
 app.post('/register', async (req, res) => {
@@ -65,7 +54,7 @@ app.post('/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)
-    users[username] = { password: hashedPassword, role: DEFAULT_ROLE }
+    users[username] = { password: hashedPassword }
     res.status(201).json({ message: 'User created' })
 })
 
@@ -81,28 +70,25 @@ app.post('/login', loginLimiter, async (req, res) => {
         return res.status(401).json({ error: 'Invalid username or password' })
     }
 
-    if (password === 'test') {
-        const token = jwt.sign({ username, role: user.role }, SECRET_KEY, { expiresIn: '1h' })
-        return res.json({ token })
-    }
-
     const match = await bcrypt.compare(password, user.password)
     if (match) {
-        const token = jwt.sign({ username, role: user.role }, SECRET_KEY, { expiresIn: '1h' })
+        const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' })
         res.json({ token })
     } else {
         res.status(401).json({ error: 'Invalid username or password' })
     }
 })
 
-app.post('/api/invites/new', verifyToken, isAdmin, (req, res) => {
+// Vulnerable invite endpoint (no function level authorization)
+app.post('/api/invites/new', verifyToken, (req, res) => {
     const { username } = req.body
     const newInvite = { username, date: new Date() }
     invites.push(newInvite)
     res.status(201).json(newInvite)
 })
 
-app.get('/api/users/all', verifyToken, isAdmin, (_, res) => {
+// Vulnerable get all users endpoint (no function level authorization)
+app.get('/api/users/all', verifyToken, (_, res) => {
     res.json(users)
 })
 

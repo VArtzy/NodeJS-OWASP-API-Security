@@ -28,6 +28,16 @@ Accept: application/json
     "password": "Rahasia!"
 }
 
+### Admin login
+POST http://localhost:3000/login
+Content-Type: application/json
+Accept: application/json
+
+{
+    "username": "admin",
+    "password": "test"
+}
+
 ### Update password
 POST http://localhost:3000/reset-password
 Content-Type: application/json
@@ -66,3 +76,18 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIs
 
 ### Testing sms code
 POST http://localhost:3000/sms_forgot_password
+
+### Invite user
+POST http://localhost:3000/api/invites/new
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzIwNzkyMDk4LCJleHAiOjE3MjA3OTU2OTh9.5JIBFfprHgJUvvFJ2C9CERi7Q7FYZwURxSy6uTe4nSk
+
+{
+    "username": "budi"
+}
+
+### Get all users
+GET http://localhost:3000/api/users/all
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzIwNzkyMDk4LCJleHAiOjE3MjA3OTU2OTh9.5JIBFfprHgJUvvFJ2C9CERi7Q7FYZwURxSy6uTe4nSk
