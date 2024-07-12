@@ -91,3 +91,22 @@ Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwi
 GET http://localhost:3000/api/users/all
 Accept: application/json
 Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzIwNzkyMDk4LCJleHAiOjE3MjA3OTU2OTh9.5JIBFfprHgJUvvFJ2C9CERi7Q7FYZwURxSy6uTe4nSk
+
+### Bussiness flow of limited product
+POST http://localhost:3000/api/purchase
+Content-Type: application/json
+Accept: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzIwNzk0NzU4LCJleHAiOjE3MjA3OTgzNTh9.-cIFRKMW4gURawVYbT-iQvW-CtL2UI3Rf2bPPzl4uS8
+
+{
+    "quantity": 1
+}
+
+### Bussiness flow of limited product with over quantity
+POST http://localhost:3000/api/purchase
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImZhcnJlbCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzIwNzk0NzU4LCJleHAiOjE3MjA3OTgzNTh9.-cIFRKMW4gURawVYbT-iQvW-CtL2UI3Rf2bPPzl4uS8
+
+{
+    "quantity": 6
+}

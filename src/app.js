@@ -53,6 +53,12 @@ const isAdmin = (req, res, next) => {
     next()
 }
 
+const purchaseLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000, // 1 day
+    max: 3, // Limit each IP to 3 purchase per day
+    message: 'You have exceeded the daily purchase limit'
+})
+
 const processThumbnail = async (base64Image) => {
     if (base64Image > 1000000) throw new Error('Image is too large')
 
@@ -141,6 +147,29 @@ app.post('/login', loginLimiter, async (req, res) => {
     } else {
         res.status(401).json({ error: 'Invalid username or password' })
     }
+})
+
+app.post('/api/purchase', verifyToken, purchaseLimiter, (req, res) => {
+    const { quantity } = req.body
+    const { username } = req
+
+    if (purchaseHistory.has(username)) {
+        return res.status(400).json({ error: 'Purchase already made today' })
+    }
+
+    if (quantity > 5) {
+        return res.status(400).json({ error: 'Maximum 5 items allowed per purchase' })
+    }
+
+    if (quantity > product.stock) {
+        return res.status(400).json({ error: 'Not enough stock' })
+    }
+
+    const orderId = randomUUID()
+    purchaseHistory.set(username, { orderId, quantity, date: new Date() })
+
+    product.stock -= quantity
+    res.json({ message: `Successfully purchased ${quantity} units`, orderId, remainingStock: product.stock })
 })
 
 app.post('/api/invites/new', verifyToken, isAdmin, (req, res) => {
