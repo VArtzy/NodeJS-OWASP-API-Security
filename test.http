@@ -130,3 +130,13 @@ Accept: application/json
 
 ### Inproper inventory management
 GET http://localhost:3000/api/v2/users/1
+
+### Unsafe 3rd API consumption
+POST http://localhost:3000/api/business
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Farrel",
+    "address": "Jakarta"
+}

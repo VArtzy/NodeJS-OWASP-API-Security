@@ -13,8 +13,10 @@ import helmet from 'helmet'
 import cors from 'cors'
 // import { readFileSync } from 'fs'
 import swaggerUi from 'swagger-ui-express'
-// import https from 'https'
+import sqlite3 from 'sqlite3'
+import https from 'https'
 import swaggerDocument from './swagger.json' with { type: 'json' }
+import { body, validationResult } from 'express-validator'
 
 const app = express()
 app.use(bodyParser.json())
@@ -48,12 +50,16 @@ const apiVersions = {
     'v1': '1.0.0',
     'v2': '2.0.0-beta'
 }
+const db = new sqlite3.Database(':memory:')
+db.run('CREATE TABLE businesses (id INTEGER PRIMARY KEY, name TEXT, address TEXT, enriched_data TEXT)')
+const httpsAgent = new https.Agent({ timeout: 5000 })
 
 const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
 const SALT_ROUNDS = 10
 const DEFAULT_ROLE = 'user'
 const ALLOWED_DOMAINS = ['example.com', 'placehold.co']
 const ALLOWED_SCHEMES = ['https']
+const ALLOWED_REDIRECTS = ['api1.example.com', 'api2.example.com']
 
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -149,6 +155,22 @@ const passwordCheck = (password) => {
     return null
 }
 
+const sanitizedEnrichedData = (data) => {
+    // Implement thorough validation and sanitization of enriched data
+    // This is a simple example and should be expanded based on your specific needs
+    const sanitized = {}
+    if (typeof data.enrichedAddress === 'string') {
+        sanitized.enrichedAddress = data.enrichedAddress.trim().slice(0, 200)
+    }
+    if (typeof data.latitude === 'number' && !isNaN(data.latitude)) {
+        sanitized.latitude = data.latitude
+    }
+    if (typeof data.longitude === 'number' && !isNaN(data.longitude)) {
+        sanitized.longitude = data.longitude
+    }
+    return sanitized
+}
+
 const verifyToken = (req, res, next) => {
     const token = req.headers['authorization']
     if (!token) return res.status(401).json({ error: 'Token is required' })
@@ -198,6 +220,49 @@ app.post('/login', loginLimiter, async (req, res) => {
         res.json({ token })
     } else {
         res.status(401).json({ error: 'Invalid username or password' })
+    }
+})
+
+app.post('/api/business', [
+    body('name').isString().trim().escape(),
+    body('address').isString().trim().escape()
+], async (req, res) => {
+    const errors = validationResult(req)
+    if(!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() })
+    }
+
+    const { name, address } = req.body
+
+    try {
+        // let response = await axios.get(`https://some-api.com/data/${name}`, {
+            // httpsAgent,
+            // maxContentLength: 1000000,
+            // validateStatus: status => status === 200,
+            // maxRedirects: 5,
+            // beforeRedirect: options => {
+                // const redirectUrl = new URL(options.href)
+                // if (!ALLOWED_REDIRECTS.includes(redirectUrl.hostname)) {
+                    // throw new Error('Redirect URL is not allowed')
+                // }   
+            // }
+        // }) // Axios with https agent and security options
+        const response = { data: { enrichedAddress: 'Bandung', latitude: 1, longitude: 0 } } // pretend this is the response from an external API like axios call above
+        const enrichedData = response.data
+
+        const sanitizeEnrichedData = sanitizedEnrichedData(enrichedData)
+
+        db.run('INSERT INTO businesses (name, address, enriched_data) VALUES (?, ?, ?)',
+            [name, address, JSON.stringify(sanitizeEnrichedData)],
+            err => {
+            if (err) {
+                res.status(500).json({ error: 'Error storing data' })
+            } else {
+               res.status(201).json({ message: 'Business added successfully' })
+            }
+        })
+    } catch (error) {
+        res.status(500).json({ error: error.message })
     }
 })
 
