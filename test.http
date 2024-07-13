@@ -127,3 +127,6 @@ Accept: application/json
 ### Security misconfiguration fixed
 GET https://localhost:443/api/users/admin
 Accept: application/json
+
+### Inproper inventory management
+GET http://localhost:3000/api/v2/users/1

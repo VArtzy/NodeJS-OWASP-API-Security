@@ -21,6 +21,7 @@
     "graphql": "^15.9.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "sharp": "^0.33.4"
+    "sharp": "^0.33.4",
+    "swagger-ui-express": "^5.0.1"
   }
 }

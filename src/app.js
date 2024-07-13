@@ -11,8 +11,10 @@ import { URL } from 'url'
 import axios from 'axios'
 import helmet from 'helmet'
 import cors from 'cors'
-import { readFileSync } from 'fs'
-import https from 'https'
+// import { readFileSync } from 'fs'
+import swaggerUi from 'swagger-ui-express'
+// import https from 'https'
+import swaggerDocument from './swagger.json' with { type: 'json' }
 
 const app = express()
 app.use(bodyParser.json())
@@ -21,6 +23,7 @@ app.use(cors({
     origin: 'https://example.com',
     methods: ['GET', 'POST']
 })) // cors is enabled only for example.com meaning that only requests from example.com are allowed
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 const revenueData = {
     'nike': { revenue: 10000, owner: 'john' },
@@ -41,6 +44,10 @@ let product = {
     stock: 100
 }
 const purchaseHistory = new Map()
+const apiVersions = {
+    'v1': '1.0.0',
+    'v2': '2.0.0-beta'
+}
 
 const SECRET_KEY = randomUUID() // Generate a unique secret key on each server start
 const SALT_ROUNDS = 10
@@ -94,6 +101,14 @@ const isUrlAllowed = (url) => {
     } catch (error) {
         return false
     }
+}
+
+const versionCheck = (req, res, next) => {
+    const version = req.path.split('/')[2]
+    if (!apiVersions[version]) {
+        return res.status(400).json({ error: 'Invalid API version' })
+    }
+    next()
 }
 
 const processThumbnail = async (base64Image) => {
@@ -185,6 +200,29 @@ app.post('/login', loginLimiter, async (req, res) => {
         res.status(401).json({ error: 'Invalid username or password' })
     }
 })
+
+// v1 API (current production version)
+app.get('/api/v1/users/:id', versionCheck, verifyToken, apiLimiter, (req, res) => {
+  // Simulating user data retrieval
+  const userData = { id: req.params.id, name: 'John Doe', email: 'john@example.com' }
+  res.json(userData)
+})
+
+// v2 API (beta version with new features)
+// Only accessible in non production environment
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/api/v2/users/:id', versionCheck, verifyToken, apiLimiter, (req, res) => {
+        // Simulating user data retrieval with additional sensitive information
+        const userData = { 
+            id: req.params.id, 
+            name: 'John Doe', 
+            email: 'john@example.com',
+            ssn: '123-45-6789',  // Sensitive data exposed in beta
+            creditCard: '1234-5678-9012-3456'  // Sensitive data exposed in beta
+        }
+        res.json(userData)
+    })
+}
 
 app.get('/api/users/:username', (req, res) => {
     const { username } = req.params
@@ -356,16 +394,26 @@ app.get('/shops/:shopName/revenue', verifyToken, (req, res) => {
     }
 })
 
-app.use((err, req, res, next) => {
+// Logging middleware for API inventory
+app.use((req, _, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
+app.use((err, _req, res, _) => {
     console.error(err)
     res.status(500).json({ error: 'An unexpected error occured' })
 })
 
-const options = {
-    key: readFileSync('private-key.pem'),
-    cert: readFileSync('certificate.pem')
-}
+/* enable HTTPS
+ const options = {
+     key: readFileSync('private-key.pem'),
+     cert: readFileSync('certificate.pem')
+ }
 
-https.createServer(options, app).listen(443, () => {
-    console.log('Server is running on https://localhost:443')
-})
+ https.createServer(options, app).listen(443, () => {
+     console.log('Server is running on https://localhost:443')
+ })
+*/
+
+app.listen(3000, () => console.log('Server is running on http://localhost:3000'))
