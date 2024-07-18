@@ -2,14 +2,9 @@
 
 ```src/app.js``` is aggregate of secure principle to REST API
 
-[Get to read the blog walkthrough!](https://farrelnikoson.tech/blog/nodejs-security-addressing-owasp-top-10-api-security-risk)
+![NodeJS Security thumbnail](https://farrelnikoson.tech/nodejs-security.jpg)
 
----
-title: 'NodeJS security: addressing the OWASP Top 10 API Security Risk'
-description: 'Learn about making better software with securing your API in NodeJS'
-pubDate: 'Jul 18 2024'
-heroImage: '/nodejs-security.jpg'
----
+[Get to read the blog walkthrough!](https://farrelnikoson.tech/blog/nodejs-security-addressing-owasp-top-10-api-security-risk)
 
 In an era where APIs (Application Programming Interfaces) form the backbone of modern software architecture, understanding and mitigating API security risks has become paramount for developers, security professionals, and organizations alike.
 
