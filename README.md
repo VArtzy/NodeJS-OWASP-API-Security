@@ -6,6 +6,18 @@
 
 [Get to read the blog walkthrough!](https://farrelnikoson.tech/blog/nodejs-security-addressing-owasp-top-10-api-security-risk)
 
+[Go to Official OWASP Top 10 API Security Risk](https://owasp.org/API-Security/editions/2023/en/0x11-t10/)
+- API1: Broken Object Level Auth
+- API2: Broken Auth
+- API3: Broken Object Property Level Auth
+- API4: Unrestricted Resource Consumption
+- API5: Broken Function Level Auth
+- API6: Unrestricted Access to Sensitive Business Flows
+- API7: Server Side Request Forgery
+- API8: Security Missconfiguration
+- API9: Inproper Inventory Management (Versioning)
+- API10: Unsafe Consumption of APIs
+
 In an era where APIs (Application Programming Interfaces) form the backbone of modern software architecture, understanding and mitigating API security risks has become paramount for developers, security professionals, and organizations alike.
 
 The Open Web Application Security Project (OWASP) Top 10 API Security Risks – 2023 serves as a crucial resource in this endeavor, offering insights into the most critical security concerns facing API ecosystems today.
