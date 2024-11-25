@@ -7,6 +7,7 @@
 [Get to read the blog walkthrough!](https://farrelnikoson.tech/blog/nodejs-security-addressing-owasp-top-10-api-security-risk)
 
 [Official OWASP Top 10 API Security Risk Page](https://owasp.org/API-Security/editions/2023/en/0x11-t10/)
+
 - API1: Broken Object Level Auth
 - API2: Broken Auth
 - API3: Broken Object Property Level Auth
